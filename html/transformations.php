@@ -13,6 +13,8 @@ header('Expires: 0');
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
 
     <script src="assets/js/jsplumb.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
@@ -197,6 +199,69 @@ header('Expires: 0');
             </div>
             <p class="edit-hint">
                 One mapping per line. Use <code>old_name -&gt; new_name</code> or <code>old_name = new_name</code>.
+            </p>
+        </div>
+        <div id="edit-filter-rows-fields" class="edit-step-fields" style="display: none;">
+            <div class="form-group">
+                <label for="filter-rows-match">Match mode</label>
+                <select id="filter-rows-match" name="filterRowsMatch">
+                    <option value="all">All conditions</option>
+                    <option value="any">Any condition</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="filter-rows-conditions">Conditions (JSON) <span class="required">*</span></label>
+                <textarea id="filter-rows-conditions" name="filterRowsConditions" rows="9" placeholder='[
+  {"field": "status", "operator": "equals", "value": "active"},
+  {"field": "id", "operator": "greaterThan", "value": 5}
+]'></textarea>
+            </div>
+            <p class="edit-hint">
+                Operators: <code>equals</code>, <code>notEquals</code>, <code>contains</code>,
+                <code>regex</code>, <code>in</code>, <code>greaterThan</code>,
+                <code>lessThan</code>, <code>isNull</code>, and <code>isEmpty</code>.
+            </p>
+        </div>
+        <div id="edit-sort-rows-fields" class="edit-step-fields" style="display: none;">
+            <div class="form-group">
+                <label for="sort-rows-fields">Sort fields (JSON) <span class="required">*</span></label>
+                <textarea id="sort-rows-fields" name="sortRowsFields" rows="9" placeholder='[
+  {"field": "created_at", "direction": "asc", "type": "date", "nulls": "last"},
+  {"field": "id", "direction": "desc", "type": "numeric"}
+]'></textarea>
+            </div>
+            <p class="edit-hint">
+                Direction: <code>asc</code> or <code>desc</code>. Type:
+                <code>auto</code>, <code>numeric</code>, <code>text</code>, or
+                <code>date</code>. Nulls: <code>first</code> or <code>last</code>.
+            </p>
+        </div>
+        <div id="edit-deduplicate-rows-fields" class="edit-step-fields" style="display: none;">
+            <div class="form-group">
+                <label for="deduplicate-key-fields">Key fields <span class="required">*</span></label>
+                <input type="text" id="deduplicate-key-fields" name="deduplicateKeyFields" placeholder="id, source">
+            </div>
+            <div class="form-group">
+                <label for="deduplicate-keep">Keep</label>
+                <select id="deduplicate-keep" name="deduplicateKeep">
+                    <option value="first">First</option>
+                    <option value="last">Last</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="deduplicate-order-field">Order field (optional)</label>
+                <input type="text" id="deduplicate-order-field" name="deduplicateOrderField" placeholder="created_at">
+            </div>
+            <div class="form-group">
+                <label for="deduplicate-order-direction">Order direction</label>
+                <select id="deduplicate-order-direction" name="deduplicateOrderDirection">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
+            <p class="edit-hint">
+                Without an order field, First or Last refers to input order.
+                With an order field, rows are selected according to the configured ordering.
             </p>
         </div>
         <div id="edit-database-fields" class="edit-step-fields" style="display: none;">
@@ -458,6 +523,9 @@ header('Expires: 0');
     const STEP_OBJECT_DATABASE_EXTRACTOR = 'DatabaseExtractor';
     const STEP_OBJECT_CONVERT_CASE_TRANSFORMER = 'ConvertCaseTransformer';
     const STEP_OBJECT_RENAME_COLUMNS_TRANSFORMER = 'RenameColumnsTransformer';
+    const STEP_OBJECT_FILTER_ROWS_TRANSFORMER = 'FilterRowsTransformer';
+    const STEP_OBJECT_SORT_ROWS_TRANSFORMER = 'SortRowsTransformer';
+    const STEP_OBJECT_DEDUPLICATE_ROWS_TRANSFORMER = 'DeduplicateRowsTransformer';
     const STEP_OBJECT_GUESS_GENDER_TRANSFORMER = 'GuessGenderTransformer';
     const STEP_OBJECT_FIND_MISSING_EXTRACTOR = 'FindMissingFromSequenceExtractor';
     const STEP_OBJECT_DATABASE_LOADER = 'DatabaseLoader';
@@ -663,9 +731,11 @@ header('Expires: 0');
             let endedAt = (window.performance && performance.now) ? performance.now() : Date.now();
             let summary = buildRunSuccessMessage(data, startedAt, endedAt);
             $('#bottom-container').text(summary).css('color', '');
+            toastr.success(summary, 'Transformation complete');
         }).fail(function (xhr) {
             let msg = formatRunError(xhr);
             $('#bottom-container').text(msg).css('color', '#c0392b');
+            toastr.error(msg, 'Transformation failed');
             alert(msg);
         });
     }
@@ -712,9 +782,11 @@ header('Expires: 0');
             let endedAt = (window.performance && performance.now) ? performance.now() : Date.now();
             let summary = buildRunSuccessMessage(data, startedAt, endedAt);
             $('#bottom-container').text(summary).css('color', '');
+            toastr.success(summary, 'Transformation complete');
         }).fail(function (xhr) {
             let msg = formatRunError(xhr);
             $('#bottom-container').text(msg).css('color', '#c0392b');
+            toastr.error(msg, 'Transformation failed');
             alert(msg);
         });
     }
@@ -1229,6 +1301,9 @@ header('Expires: 0');
         $('#edit-pdf-fields').hide();
         $('#edit-convertcase-fields').hide();
         $('#edit-rename-fields').hide();
+        $('#edit-filter-rows-fields').hide();
+        $('#edit-sort-rows-fields').hide();
+        $('#edit-deduplicate-rows-fields').hide();
         $('#edit-database-fields').hide();
         $('#edit-db-extractor-fields').hide();
         $('#edit-find-missing-fields').hide();
@@ -1316,6 +1391,37 @@ $('#convertcase-mode').val(convertCaseModeVal);
             }
             $('#rename-mappings').val(mappings.join('\n'));
             $('#step-edit-modal').dialog('option', 'title', 'Edit Rename Columns Transformer');
+            $('#step-edit-modal').dialog('open');
+        } else if (step.object === STEP_OBJECT_FILTER_ROWS_TRANSFORMER) {
+            $('#edit-filter-rows-fields').show();
+            let cfg = nodeConfig[numericId] || {};
+            let opts = cfg.options || {};
+            $('#filter-rows-match').val(opts.match === 'any' ? 'any' : 'all');
+            $('#filter-rows-conditions').val(
+                JSON.stringify(Array.isArray(opts.conditions) ? opts.conditions : [], null, 2)
+            );
+            $('#step-edit-modal').dialog('option', 'title', 'Edit Filter Rows Transformer');
+            $('#step-edit-modal').dialog('open');
+        } else if (step.object === STEP_OBJECT_SORT_ROWS_TRANSFORMER) {
+            $('#edit-sort-rows-fields').show();
+            let cfg = nodeConfig[numericId] || {};
+            let opts = cfg.options || {};
+            $('#sort-rows-fields').val(
+                JSON.stringify(Array.isArray(opts.fields) ? opts.fields : [], null, 2)
+            );
+            $('#step-edit-modal').dialog('option', 'title', 'Edit Sort Rows Transformer');
+            $('#step-edit-modal').dialog('open');
+        } else if (step.object === STEP_OBJECT_DEDUPLICATE_ROWS_TRANSFORMER) {
+            $('#edit-deduplicate-rows-fields').show();
+            let cfg = nodeConfig[numericId] || {};
+            let opts = cfg.options || {};
+            $('#deduplicate-key-fields').val(
+                Array.isArray(opts.keyFields) ? opts.keyFields.join(', ') : (opts.keyFields || '')
+            );
+            $('#deduplicate-keep').val(opts.keep === 'last' ? 'last' : 'first');
+            $('#deduplicate-order-field').val(opts.orderField || '');
+            $('#deduplicate-order-direction').val(opts.orderDirection === 'desc' ? 'desc' : 'asc');
+            $('#step-edit-modal').dialog('option', 'title', 'Edit Deduplicate Rows Transformer');
             $('#step-edit-modal').dialog('open');
         } else if (step.object === STEP_OBJECT_DATABASE_EXTRACTOR) {
             $('#edit-db-extractor-fields').show();
@@ -1542,6 +1648,89 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 options: {
                     columns: columnsMap
                 }
+            };
+        } else if (step.object === STEP_OBJECT_FILTER_ROWS_TRANSFORMER) {
+            let conditionsRaw = $('#filter-rows-conditions').val().trim();
+            let conditions;
+            try {
+                conditions = JSON.parse(conditionsRaw);
+            } catch (e) {
+                alert('Conditions must be valid JSON.');
+                return;
+            }
+            if (!Array.isArray(conditions) || conditions.length === 0) {
+                alert('At least one filter condition is required.');
+                return;
+            }
+            let invalidCondition = conditions.some(function (condition) {
+                return !condition || typeof condition !== 'object' ||
+                    typeof condition.field !== 'string' || !condition.field.trim() ||
+                    typeof condition.operator !== 'string' || !condition.operator.trim();
+            });
+            if (invalidCondition) {
+                alert('Every condition requires a field and operator.');
+                return;
+            }
+            nodeConfig[numericId] = {
+                stepId: stepId,
+                stepType: step.type,
+                object: step.object,
+                options: {
+                    match: $('#filter-rows-match').val() === 'any' ? 'any' : 'all',
+                    conditions: conditions
+                }
+            };
+        } else if (step.object === STEP_OBJECT_SORT_ROWS_TRANSFORMER) {
+            let fieldsRaw = $('#sort-rows-fields').val().trim();
+            let fields;
+            try {
+                fields = JSON.parse(fieldsRaw);
+            } catch (e) {
+                alert('Sort fields must be valid JSON.');
+                return;
+            }
+            if (!Array.isArray(fields) || fields.length === 0) {
+                alert('At least one sort field is required.');
+                return;
+            }
+            let invalidField = fields.some(function (field) {
+                if (typeof field === 'string') return !field.trim();
+                return !field || typeof field !== 'object' ||
+                    typeof field.field !== 'string' || !field.field.trim();
+            });
+            if (invalidField) {
+                alert('Every sort entry must be a field name or an object with a field property.');
+                return;
+            }
+            nodeConfig[numericId] = {
+                stepId: stepId,
+                stepType: step.type,
+                object: step.object,
+                options: { fields: fields }
+            };
+        } else if (step.object === STEP_OBJECT_DEDUPLICATE_ROWS_TRANSFORMER) {
+            let keyFieldsRaw = $('#deduplicate-key-fields').val().trim();
+            let keyFields = keyFieldsRaw.split(',').map(function (field) {
+                return field.trim();
+            }).filter(Boolean);
+            if (keyFields.length === 0) {
+                alert('At least one deduplication key field is required.');
+                return;
+            }
+            let deduplicateOptions = {
+                keyFields: keyFields,
+                keep: $('#deduplicate-keep').val() === 'last' ? 'last' : 'first',
+                orderDirection: $('#deduplicate-order-direction').val() === 'desc' ? 'desc' : 'asc'
+            };
+            let orderField = $('#deduplicate-order-field').val().trim();
+            if (orderField) {
+                deduplicateOptions.orderField = orderField;
+            }
+            nodeConfig[numericId] = {
+                stepId: stepId,
+                stepType: step.type,
+                object: step.object,
+                options: deduplicateOptions
             };
         } else if (step.object === STEP_OBJECT_DATABASE_LOADER) {
             let driver = $('#db-driver').val();
