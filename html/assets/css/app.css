@@ -200,6 +200,42 @@ body {
     color: #ecf0f1;
 }
 
+#transformation-notes-container {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    background: #f7f9fb;
+    border-bottom: 1px solid #e1e4e8;
+}
+
+#transformation-notes-container label {
+    color: #34495e;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#transformation-notes {
+    flex: 1;
+    min-height: 38px;
+    max-height: 100px;
+    resize: vertical;
+    border: 1px solid #cbd3da;
+    border-radius: 6px;
+    padding: 7px 9px;
+    font: inherit;
+    font-size: 13px;
+    color: #2c3e50;
+    background: #fff;
+}
+
+#transformation-notes:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.12);
+}
+
 #logout-btn {
     color: #bdc3c7;
     text-decoration: none;

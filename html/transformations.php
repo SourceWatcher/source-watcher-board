@@ -44,6 +44,10 @@ header('Expires: 0');
             <button type="button" id="save-transformation-btn" class="top-menu-button">Save</button>
             <a href="login.php" id="logout-btn">Log out</a>
         </div>
+        <div id="transformation-notes-container">
+            <label for="transformation-notes">Notes</label>
+            <textarea id="transformation-notes" rows="2" placeholder="Describe this transformation, its source, assumptions, or operational notes."></textarea>
+        </div>
 
         <div id="central-container">
             <aside class="sidebar-panel">
@@ -262,6 +266,23 @@ header('Expires: 0');
             <p class="edit-hint">
                 Without an order field, First or Last refers to input order.
                 With an order field, rows are selected according to the configured ordering.
+            </p>
+        </div>
+        <div id="edit-choose-columns-fields" class="edit-step-fields" style="display: none;">
+            <div class="form-group">
+                <label for="choose-columns-mode">Mode</label>
+                <select id="choose-columns-mode" name="chooseColumnsMode">
+                    <option value="include">Include only these columns</option>
+                    <option value="exclude">Exclude these columns</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="choose-columns-list">Columns <span class="required">*</span></label>
+                <input type="text" id="choose-columns-list" name="chooseColumnsList" placeholder="id, name, email">
+            </div>
+            <p class="edit-hint">
+                Include mode also determines the resulting column order. Missing
+                columns are ignored in both modes.
             </p>
         </div>
         <div id="edit-database-fields" class="edit-step-fields" style="display: none;">
@@ -526,6 +547,7 @@ header('Expires: 0');
     const STEP_OBJECT_FILTER_ROWS_TRANSFORMER = 'FilterRowsTransformer';
     const STEP_OBJECT_SORT_ROWS_TRANSFORMER = 'SortRowsTransformer';
     const STEP_OBJECT_DEDUPLICATE_ROWS_TRANSFORMER = 'DeduplicateRowsTransformer';
+    const STEP_OBJECT_CHOOSE_COLUMNS_TRANSFORMER = 'ChooseColumnsTransformer';
     const STEP_OBJECT_GUESS_GENDER_TRANSFORMER = 'GuessGenderTransformer';
     const STEP_OBJECT_FIND_MISSING_EXTRACTOR = 'FindMissingFromSequenceExtractor';
     const STEP_OBJECT_DATABASE_LOADER = 'DatabaseLoader';
@@ -626,6 +648,7 @@ header('Expires: 0');
         clearCanvas();
         loadedTransformationName = '';
         $('#saved-transformations-select').val('');
+        $('#transformation-notes').val('');
         $('#bottom-container').text('Ready for a new transformation').css('color', '');
     }
 
@@ -694,6 +717,9 @@ header('Expires: 0');
                 }
             }
             loadedTransformationName = name.trim();
+            $('#transformation-notes').val(
+                data && typeof data.notes === 'string' ? data.notes : ''
+            );
         }).fail(function (xhr) {
             let msg = 'Failed to load transformation.';
             if (xhr && xhr.responseText) {
@@ -1035,7 +1061,10 @@ header('Expires: 0');
             name = name.trim();
         }
 
-        let payload = { steps: stepsPayload };
+        let payload = {
+            notes: $('#transformation-notes').val(),
+            steps: stepsPayload
+        };
         if (name) {
             payload.name = name;
         }
@@ -1304,6 +1333,7 @@ header('Expires: 0');
         $('#edit-filter-rows-fields').hide();
         $('#edit-sort-rows-fields').hide();
         $('#edit-deduplicate-rows-fields').hide();
+        $('#edit-choose-columns-fields').hide();
         $('#edit-database-fields').hide();
         $('#edit-db-extractor-fields').hide();
         $('#edit-find-missing-fields').hide();
@@ -1422,6 +1452,16 @@ $('#convertcase-mode').val(convertCaseModeVal);
             $('#deduplicate-order-field').val(opts.orderField || '');
             $('#deduplicate-order-direction').val(opts.orderDirection === 'desc' ? 'desc' : 'asc');
             $('#step-edit-modal').dialog('option', 'title', 'Edit Deduplicate Rows Transformer');
+            $('#step-edit-modal').dialog('open');
+        } else if (step.object === STEP_OBJECT_CHOOSE_COLUMNS_TRANSFORMER) {
+            $('#edit-choose-columns-fields').show();
+            let cfg = nodeConfig[numericId] || {};
+            let opts = cfg.options || {};
+            $('#choose-columns-mode').val(opts.mode === 'exclude' ? 'exclude' : 'include');
+            $('#choose-columns-list').val(
+                Array.isArray(opts.columns) ? opts.columns.join(', ') : (opts.columns || '')
+            );
+            $('#step-edit-modal').dialog('option', 'title', 'Edit Choose Columns Transformer');
             $('#step-edit-modal').dialog('open');
         } else if (step.object === STEP_OBJECT_DATABASE_EXTRACTOR) {
             $('#edit-db-extractor-fields').show();
@@ -1731,6 +1771,24 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 stepType: step.type,
                 object: step.object,
                 options: deduplicateOptions
+            };
+        } else if (step.object === STEP_OBJECT_CHOOSE_COLUMNS_TRANSFORMER) {
+            let columnsRaw = $('#choose-columns-list').val().trim();
+            let columns = columnsRaw.split(',').map(function (column) {
+                return column.trim();
+            }).filter(Boolean);
+            if (columns.length === 0) {
+                alert('At least one column is required.');
+                return;
+            }
+            nodeConfig[numericId] = {
+                stepId: stepId,
+                stepType: step.type,
+                object: step.object,
+                options: {
+                    mode: $('#choose-columns-mode').val() === 'exclude' ? 'exclude' : 'include',
+                    columns: columns
+                }
             };
         } else if (step.object === STEP_OBJECT_DATABASE_LOADER) {
             let driver = $('#db-driver').val();
