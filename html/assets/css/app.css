@@ -313,10 +313,12 @@ body {
     right: 18px;
     z-index: 50;
     width: min(320px, calc(100% - 36px));
-    border: 1px solid #dfc86a;
+    border: 2px solid #b99d2f;
     border-radius: 10px;
     background: #fff8cf;
-    box-shadow: 0 8px 24px rgba(44, 62, 80, 0.18);
+    box-shadow:
+        0 0 0 3px rgba(185, 157, 47, 0.14),
+        0 8px 24px rgba(44, 62, 80, 0.22);
     overflow: hidden;
 }
 
