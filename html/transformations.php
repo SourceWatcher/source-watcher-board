@@ -313,6 +313,63 @@ header('Expires: 0');
                 <code>date_format</code>.
             </p>
         </div>
+        <div id="edit-type-conversion-fields" class="edit-step-fields" style="display: none;">
+            <div class="form-group">
+                <label for="type-conversion-fields">Field types (JSON) <span class="required">*</span></label>
+                <textarea id="type-conversion-fields" name="typeConversionFields" rows="7" placeholder='{
+  "id": "integer",
+  "price": "float",
+  "active": "boolean",
+  "created_at": "datetime"
+}'></textarea>
+            </div>
+            <div class="form-group">
+                <label for="type-conversion-mode">Mode</label>
+                <select id="type-conversion-mode" name="typeConversionMode">
+                    <option value="strict">Strict — fail on invalid values</option>
+                    <option value="forgiving">Forgiving — preserve invalid values</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="type-conversion-empty-as-null" checked>
+                    Convert empty strings to null
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="type-conversion-null-handling">Null handling</label>
+                <select id="type-conversion-null-handling" name="typeConversionNullHandling">
+                    <option value="preserve">Preserve nulls</option>
+                    <option value="error">Treat nulls as errors</option>
+                </select>
+            </div>
+        </div>
+        <div id="edit-validate-rows-fields" class="edit-step-fields" style="display: none;">
+            <div class="form-group">
+                <label for="validate-rows-rules">Validation rules (JSON) <span class="required">*</span></label>
+                <textarea id="validate-rows-rules" name="validateRowsRules" rows="10" placeholder='{
+  "id": {"required": true, "type": "integer", "min": 1},
+  "email": {"required": true, "format": "email"},
+  "status": {"allowed": ["active", "inactive"]}
+}'></textarea>
+            </div>
+            <div class="form-group">
+                <label for="validate-rows-mode">Mode</label>
+                <select id="validate-rows-mode" name="validateRowsMode">
+                    <option value="fail">Fail on invalid rows</option>
+                    <option value="annotate">Annotate rows with errors</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="validate-rows-error-field">Error field</label>
+                <input type="text" id="validate-rows-error-field" name="validateRowsErrorField" value="_validation_errors">
+            </div>
+            <p class="edit-hint">
+                Rules: <code>required</code>, <code>type</code>, <code>format</code>,
+                <code>allowed</code>, <code>regex</code>, <code>min</code>,
+                <code>max</code>, <code>minLength</code>, and <code>maxLength</code>.
+            </p>
+        </div>
         <div id="edit-database-fields" class="edit-step-fields" style="display: none;">
             <div class="form-group">
                 <label for="db-driver">Driver</label>
@@ -577,6 +634,8 @@ header('Expires: 0');
     const STEP_OBJECT_DEDUPLICATE_ROWS_TRANSFORMER = 'DeduplicateRowsTransformer';
     const STEP_OBJECT_CHOOSE_COLUMNS_TRANSFORMER = 'ChooseColumnsTransformer';
     const STEP_OBJECT_DERIVE_FIELD_TRANSFORMER = 'DeriveFieldTransformer';
+    const STEP_OBJECT_TYPE_CONVERSION_TRANSFORMER = 'TypeConversionTransformer';
+    const STEP_OBJECT_VALIDATE_ROWS_TRANSFORMER = 'ValidateRowsTransformer';
     const STEP_OBJECT_GUESS_GENDER_TRANSFORMER = 'GuessGenderTransformer';
     const STEP_OBJECT_FIND_MISSING_EXTRACTOR = 'FindMissingFromSequenceExtractor';
     const STEP_OBJECT_DATABASE_LOADER = 'DatabaseLoader';
@@ -1375,6 +1434,8 @@ header('Expires: 0');
         $('#edit-deduplicate-rows-fields').hide();
         $('#edit-choose-columns-fields').hide();
         $('#edit-derive-field-fields').hide();
+        $('#edit-type-conversion-fields').hide();
+        $('#edit-validate-rows-fields').hide();
         $('#edit-database-fields').hide();
         $('#edit-db-extractor-fields').hide();
         $('#edit-find-missing-fields').hide();
@@ -1511,6 +1572,29 @@ $('#convertcase-mode').val(convertCaseModeVal);
             $('#derive-field-target').val(opts.targetField || '');
             $('#derive-field-expression').val(opts.expression || '');
             $('#step-edit-modal').dialog('option', 'title', 'Edit Derive Field Transformer');
+            $('#step-edit-modal').dialog('open');
+        } else if (step.object === STEP_OBJECT_TYPE_CONVERSION_TRANSFORMER) {
+            $('#edit-type-conversion-fields').show();
+            let cfg = nodeConfig[numericId] || {};
+            let opts = cfg.options || {};
+            $('#type-conversion-fields').val(
+                JSON.stringify(opts.fields && typeof opts.fields === 'object' ? opts.fields : {}, null, 2)
+            );
+            $('#type-conversion-mode').val(opts.mode === 'forgiving' ? 'forgiving' : 'strict');
+            $('#type-conversion-empty-as-null').prop('checked', opts.emptyAsNull !== false);
+            $('#type-conversion-null-handling').val(opts.nullHandling === 'error' ? 'error' : 'preserve');
+            $('#step-edit-modal').dialog('option', 'title', 'Edit Type Conversion Transformer');
+            $('#step-edit-modal').dialog('open');
+        } else if (step.object === STEP_OBJECT_VALIDATE_ROWS_TRANSFORMER) {
+            $('#edit-validate-rows-fields').show();
+            let cfg = nodeConfig[numericId] || {};
+            let opts = cfg.options || {};
+            $('#validate-rows-rules').val(
+                JSON.stringify(opts.rules && typeof opts.rules === 'object' ? opts.rules : {}, null, 2)
+            );
+            $('#validate-rows-mode').val(opts.mode === 'annotate' ? 'annotate' : 'fail');
+            $('#validate-rows-error-field').val(opts.errorField || '_validation_errors');
+            $('#step-edit-modal').dialog('option', 'title', 'Edit Validate Rows Transformer');
             $('#step-edit-modal').dialog('open');
         } else if (step.object === STEP_OBJECT_DATABASE_EXTRACTOR) {
             $('#edit-db-extractor-fields').show();
@@ -1857,6 +1941,52 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 options: {
                     targetField: targetField,
                     expression: expression
+                }
+            };
+        } else if (step.object === STEP_OBJECT_TYPE_CONVERSION_TRANSFORMER) {
+            let fields;
+            try {
+                fields = JSON.parse($('#type-conversion-fields').val().trim());
+            } catch (e) {
+                alert('Field types must be valid JSON.');
+                return;
+            }
+            if (!fields || Array.isArray(fields) || typeof fields !== 'object' || Object.keys(fields).length === 0) {
+                alert('At least one field type is required.');
+                return;
+            }
+            nodeConfig[numericId] = {
+                stepId: stepId,
+                stepType: step.type,
+                object: step.object,
+                options: {
+                    fields: fields,
+                    mode: $('#type-conversion-mode').val() === 'forgiving' ? 'forgiving' : 'strict',
+                    emptyAsNull: $('#type-conversion-empty-as-null').prop('checked'),
+                    nullHandling: $('#type-conversion-null-handling').val() === 'error' ? 'error' : 'preserve'
+                }
+            };
+        } else if (step.object === STEP_OBJECT_VALIDATE_ROWS_TRANSFORMER) {
+            let rules;
+            try {
+                rules = JSON.parse($('#validate-rows-rules').val().trim());
+            } catch (e) {
+                alert('Validation rules must be valid JSON.');
+                return;
+            }
+            if (!rules || Array.isArray(rules) || typeof rules !== 'object' || Object.keys(rules).length === 0) {
+                alert('At least one field rule is required.');
+                return;
+            }
+            let errorField = $('#validate-rows-error-field').val().trim() || '_validation_errors';
+            nodeConfig[numericId] = {
+                stepId: stepId,
+                stepType: step.type,
+                object: step.object,
+                options: {
+                    rules: rules,
+                    mode: $('#validate-rows-mode').val() === 'annotate' ? 'annotate' : 'fail',
+                    errorField: errorField
                 }
             };
         } else if (step.object === STEP_OBJECT_DATABASE_LOADER) {
