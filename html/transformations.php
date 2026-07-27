@@ -79,6 +79,14 @@ header('Expires: 0');
     </div>
 </div>
 
+<div id="save-transformation-modal" title="Save Transformation" style="display: none;">
+    <form id="save-transformation-form">
+        <label for="save-transformation-name" class="save-transformation-modal-label">Transformation name</label>
+        <input type="text" id="save-transformation-name" autocomplete="off" placeholder="Enter a name (optional)">
+        <p class="save-transformation-modal-hint">Leave the name empty to let Source Watcher assign one.</p>
+    </form>
+</div>
+
 <div id="transformation-notes-modal" title="Edit Transformation Notes" style="display: none;">
     <label for="transformation-notes" class="transformation-notes-modal-label">Notes</label>
     <textarea id="transformation-notes" rows="10" placeholder="Describe this transformation, its source, assumptions, or operational notes."></textarea>
@@ -1153,9 +1161,20 @@ header('Expires: 0');
             return;
         }
 
-        let name = window.prompt('Transformation name (optional):', loadedTransformationName || '');
-        if (name !== null) {
-            name = name.trim();
+        $('#save-transformation-name').val(loadedTransformationName || '');
+        $('#save-transformation-modal').dialog('open');
+        window.setTimeout(function () {
+            $('#save-transformation-name').trigger('focus').select();
+        }, 0);
+    }
+
+    function persistTransformation() {
+        let name = $('#save-transformation-name').val().trim();
+        let stepsPayload = buildStepsPayload();
+        if (!stepsPayload.length) {
+            $('#save-transformation-modal').dialog('close');
+            toastr.warning('There are no steps on the canvas to save.');
+            return;
         }
 
         let payload = {
@@ -1180,6 +1199,7 @@ header('Expires: 0');
                 msg = 'Transformation "' + data.name + '" saved.';
                 loadedTransformationName = data.name;
             }
+            $('#save-transformation-modal').dialog('close');
             toastr.success(msg, 'Transformation saved');
             loadSavedTransformationsList();
         }).fail(function (xhr) {
@@ -2095,6 +2115,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
             return;
         }
         $('#step-edit-modal').dialog('close');
+        toastr.success('Step settings updated on the canvas.', 'Step saved');
     }
 
     function remove(numericId) {
@@ -2235,6 +2256,23 @@ $('#convertcase-mode').val(convertCaseModeVal);
         $('#save-transformation-btn').on('click', function () {
             saveTransformation();
         });
+        $('#save-transformation-modal').dialog({
+            autoOpen: false,
+            modal: true,
+            width: 420,
+            buttons: {
+                Save: function () {
+                    persistTransformation();
+                },
+                Cancel: function () {
+                    $(this).dialog('close');
+                }
+            }
+        });
+        $('#save-transformation-form').on('submit', function (e) {
+            e.preventDefault();
+            persistTransformation();
+        });
         $('#load-transformation-btn').on('click', function () {
             let name = $('#saved-transformations-select').val();
             if (name) {
@@ -2257,6 +2295,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 Save: function () {
                     setTransformationNotes($('#transformation-notes').val());
                     $(this).dialog('close');
+                    toastr.success('Transformation notes updated on the canvas.', 'Notes saved');
                 },
                 Cancel: function () {
                     $(this).dialog('close');

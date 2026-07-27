@@ -401,6 +401,34 @@ body {
     font-weight: 600;
 }
 
+.save-transformation-modal-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+#save-transformation-name {
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid #cbd3da;
+    border-radius: 6px;
+    padding: 9px;
+    font: inherit;
+    font-size: 13px;
+}
+
+#save-transformation-name:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.12);
+}
+
+.save-transformation-modal-hint {
+    margin: 7px 0 0;
+    color: #6b7785;
+    font-size: 12px;
+}
+
 #transformation-notes {
     box-sizing: border-box;
     width: 100%;
