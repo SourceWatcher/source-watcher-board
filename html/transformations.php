@@ -296,6 +296,23 @@ header('Expires: 0');
                 columns are ignored in both modes.
             </p>
         </div>
+        <div id="edit-derive-field-fields" class="edit-step-fields" style="display: none;">
+            <div class="form-group">
+                <label for="derive-field-target">Target field <span class="required">*</span></label>
+                <input type="text" id="derive-field-target" name="deriveFieldTarget" placeholder="full_name">
+            </div>
+            <div class="form-group">
+                <label for="derive-field-expression">Expression <span class="required">*</span></label>
+                <textarea id="derive-field-expression" name="deriveFieldExpression" rows="5" placeholder="concat(first_name, ' ', last_name)"></textarea>
+            </div>
+            <p class="edit-hint">
+                Supports field references, quoted strings, numbers, null,
+                arithmetic (<code>+ - * /</code>), parentheses, and
+                <code>concat</code>, <code>coalesce</code>, <code>upper</code>,
+                <code>lower</code>, <code>trim</code>, <code>length</code>, and
+                <code>date_format</code>.
+            </p>
+        </div>
         <div id="edit-database-fields" class="edit-step-fields" style="display: none;">
             <div class="form-group">
                 <label for="db-driver">Driver</label>
@@ -559,6 +576,7 @@ header('Expires: 0');
     const STEP_OBJECT_SORT_ROWS_TRANSFORMER = 'SortRowsTransformer';
     const STEP_OBJECT_DEDUPLICATE_ROWS_TRANSFORMER = 'DeduplicateRowsTransformer';
     const STEP_OBJECT_CHOOSE_COLUMNS_TRANSFORMER = 'ChooseColumnsTransformer';
+    const STEP_OBJECT_DERIVE_FIELD_TRANSFORMER = 'DeriveFieldTransformer';
     const STEP_OBJECT_GUESS_GENDER_TRANSFORMER = 'GuessGenderTransformer';
     const STEP_OBJECT_FIND_MISSING_EXTRACTOR = 'FindMissingFromSequenceExtractor';
     const STEP_OBJECT_DATABASE_LOADER = 'DatabaseLoader';
@@ -1356,6 +1374,7 @@ header('Expires: 0');
         $('#edit-sort-rows-fields').hide();
         $('#edit-deduplicate-rows-fields').hide();
         $('#edit-choose-columns-fields').hide();
+        $('#edit-derive-field-fields').hide();
         $('#edit-database-fields').hide();
         $('#edit-db-extractor-fields').hide();
         $('#edit-find-missing-fields').hide();
@@ -1484,6 +1503,14 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 Array.isArray(opts.columns) ? opts.columns.join(', ') : (opts.columns || '')
             );
             $('#step-edit-modal').dialog('option', 'title', 'Edit Choose Columns Transformer');
+            $('#step-edit-modal').dialog('open');
+        } else if (step.object === STEP_OBJECT_DERIVE_FIELD_TRANSFORMER) {
+            $('#edit-derive-field-fields').show();
+            let cfg = nodeConfig[numericId] || {};
+            let opts = cfg.options || {};
+            $('#derive-field-target').val(opts.targetField || '');
+            $('#derive-field-expression').val(opts.expression || '');
+            $('#step-edit-modal').dialog('option', 'title', 'Edit Derive Field Transformer');
             $('#step-edit-modal').dialog('open');
         } else if (step.object === STEP_OBJECT_DATABASE_EXTRACTOR) {
             $('#edit-db-extractor-fields').show();
@@ -1810,6 +1837,26 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 options: {
                     mode: $('#choose-columns-mode').val() === 'exclude' ? 'exclude' : 'include',
                     columns: columns
+                }
+            };
+        } else if (step.object === STEP_OBJECT_DERIVE_FIELD_TRANSFORMER) {
+            let targetField = $('#derive-field-target').val().trim();
+            let expression = $('#derive-field-expression').val().trim();
+            if (!targetField) {
+                alert('Target field is required.');
+                return;
+            }
+            if (!expression) {
+                alert('Expression is required.');
+                return;
+            }
+            nodeConfig[numericId] = {
+                stepId: stepId,
+                stepType: step.type,
+                object: step.object,
+                options: {
+                    targetField: targetField,
+                    expression: expression
                 }
             };
         } else if (step.object === STEP_OBJECT_DATABASE_LOADER) {
