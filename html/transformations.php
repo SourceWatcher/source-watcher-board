@@ -55,11 +55,11 @@ header('Expires: 0');
                 <section id="transformation-notes-card" aria-label="Transformation notes">
                     <div class="transformation-notes-header">
                         <span class="transformation-notes-icon" aria-hidden="true">✎</span>
-                        <label for="transformation-notes">Transformation Notes</label>
-                        <button type="button" id="toggle-transformation-notes" title="Collapse notes" aria-expanded="true">−</button>
+                        <span class="transformation-notes-title">Transformation Notes</span>
+                        <button type="button" id="edit-transformation-notes">Edit</button>
                     </div>
                     <div class="transformation-notes-body">
-                        <textarea id="transformation-notes" rows="6" placeholder="Describe this transformation, its source, assumptions, or operational notes."></textarea>
+                        <div id="transformation-notes-display" class="transformation-notes-empty">No notes yet.</div>
                         <span class="transformation-notes-hint">Saved with this transformation</span>
                     </div>
                 </section>
@@ -77,6 +77,11 @@ header('Expires: 0');
             Ready
         </div>
     </div>
+</div>
+
+<div id="transformation-notes-modal" title="Edit Transformation Notes" style="display: none;">
+    <label for="transformation-notes" class="transformation-notes-modal-label">Notes</label>
+    <textarea id="transformation-notes" rows="10" placeholder="Describe this transformation, its source, assumptions, or operational notes."></textarea>
 </div>
 
 <!-- Step edit modal (for CSV and other step types) -->
@@ -654,7 +659,7 @@ header('Expires: 0');
         clearCanvas();
         loadedTransformationName = '';
         $('#saved-transformations-select').val('');
-        $('#transformation-notes').val('');
+        setTransformationNotes('');
         $('#bottom-container').text('Ready for a new transformation').css('color', '');
     }
 
@@ -723,9 +728,7 @@ header('Expires: 0');
                 }
             }
             loadedTransformationName = name.trim();
-            $('#transformation-notes').val(
-                data && typeof data.notes === 'string' ? data.notes : ''
-            );
+            setTransformationNotes(data && typeof data.notes === 'string' ? data.notes : '');
         }).fail(function (xhr) {
             let msg = 'Failed to load transformation.';
             if (xhr && xhr.responseText) {
@@ -739,6 +742,19 @@ header('Expires: 0');
     }
 
     let loadedTransformationName = '';
+    let transformationNotes = '';
+
+    function setTransformationNotes(notes) {
+        let value = typeof notes === 'string' ? notes : '';
+        transformationNotes = value;
+        $('#transformation-notes').val(value);
+        let display = $('#transformation-notes-display');
+        if (value.trim()) {
+            display.text(value).removeClass('transformation-notes-empty');
+        } else {
+            display.text('No notes yet.').addClass('transformation-notes-empty');
+        }
+    }
 
     function runTransformationSaved() {
         let name = $('#saved-transformations-select').val();
@@ -1068,7 +1084,7 @@ header('Expires: 0');
         }
 
         let payload = {
-            notes: $('#transformation-notes').val(),
+            notes: transformationNotes,
             steps: stepsPayload
         };
         if (name) {
@@ -2058,18 +2074,28 @@ $('#convertcase-mode').val(convertCaseModeVal);
         $('#run-current-btn').on('click', function () {
             runTransformationCurrent();
         });
-        $('#toggle-transformation-notes').on('click', function () {
-            let card = $('#transformation-notes-card');
-            let collapsed = card.toggleClass('is-collapsed').hasClass('is-collapsed');
-            $(this)
-                .text(collapsed ? '+' : '−')
-                .attr('title', collapsed ? 'Expand notes' : 'Collapse notes')
-                .attr('aria-expanded', collapsed ? 'false' : 'true');
+        $('#transformation-notes-modal').dialog({
+            autoOpen: false,
+            modal: true,
+            width: 520,
+            buttons: {
+                Save: function () {
+                    setTransformationNotes($('#transformation-notes').val());
+                    $(this).dialog('close');
+                },
+                Cancel: function () {
+                    $(this).dialog('close');
+                }
+            }
+        });
+        $('#edit-transformation-notes').on('click', function () {
+            $('#transformation-notes').val(transformationNotes);
+            $('#transformation-notes-modal').dialog('open');
         });
         $('#transformation-notes-card').draggable({
             containment: '#diagram-container',
             handle: '.transformation-notes-header',
-            cancel: 'button, textarea'
+            cancel: 'button'
         });
         $(document).on('click', '.step-edit', function (e) {
             e.preventDefault();

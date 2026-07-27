@@ -332,30 +332,28 @@ body {
     user-select: none;
 }
 
-.transformation-notes-header label {
+.transformation-notes-title {
     flex: 1;
     font-size: 13px;
     font-weight: 700;
-    cursor: move;
 }
 
 .transformation-notes-icon {
     font-size: 17px;
 }
 
-#toggle-transformation-notes {
-    width: 26px;
-    height: 26px;
-    border: 0;
+#edit-transformation-notes {
+    border: 1px solid rgba(95, 82, 28, 0.22);
     border-radius: 5px;
     background: rgba(95, 82, 28, 0.1);
     color: #5f521c;
-    font-size: 18px;
-    line-height: 1;
+    padding: 4px 9px;
+    font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
 }
 
-#toggle-transformation-notes:hover {
+#edit-transformation-notes:hover {
     background: rgba(95, 82, 28, 0.18);
 }
 
@@ -363,26 +361,20 @@ body {
     padding: 10px;
 }
 
-#transformation-notes {
-    box-sizing: border-box;
-    width: 100%;
-    min-height: 118px;
-    max-height: 300px;
-    resize: vertical;
-    border: 1px solid #dfcf83;
-    border-radius: 6px;
-    padding: 9px;
-    font: inherit;
+#transformation-notes-display {
+    min-height: 72px;
+    max-height: 240px;
+    overflow-y: auto;
+    color: #3f3a24;
     font-size: 13px;
     line-height: 1.45;
-    color: #3f3a24;
-    background: rgba(255, 255, 255, 0.7);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
-#transformation-notes:focus {
-    border-color: #b99d2f;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(185, 157, 47, 0.16);
+.transformation-notes-empty {
+    color: #9b8b48 !important;
+    font-style: italic;
 }
 
 .transformation-notes-hint {
@@ -393,12 +385,29 @@ body {
     text-align: right;
 }
 
-#transformation-notes-card.is-collapsed {
-    width: 220px;
+.transformation-notes-modal-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
 }
 
-#transformation-notes-card.is-collapsed .transformation-notes-body {
-    display: none;
+#transformation-notes {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 190px;
+    resize: vertical;
+    border: 1px solid #cbd3da;
+    border-radius: 6px;
+    padding: 9px;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+#transformation-notes:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.12);
 }
 
 #canvas {
