@@ -775,7 +775,7 @@ header('Expires: 0');
         }).done(function (data) {
             let stepsList = (data && data.steps) ? data.steps : (Array.isArray(data) ? data : null);
             if (!Array.isArray(stepsList) || stepsList.length === 0) {
-                alert('Transformation has no steps.');
+                toastr.warning('Transformation has no steps.');
                 return;
             }
             clearCanvas();
@@ -786,7 +786,7 @@ header('Expires: 0');
                 let stepName = (step.name || '').toString();
                 let stepId = getStepIdByTypeAndName(type, stepName);
                 if (!stepId) {
-                    alert('Unknown step type/name: ' + type + ' / ' + stepName + '. Load aborted.');
+                    toastr.warning('Unknown step type/name: ' + type + ' / ' + stepName + '. Load aborted.');
                     return;
                 }
                 let stepDef = steps.get(stepId);
@@ -814,7 +814,7 @@ header('Expires: 0');
                     if (err && err.message) msg = err.message;
                 } catch (e) {}
             }
-            alert(msg);
+            toastr.error(msg, 'Load failed');
         });
     }
 
@@ -836,7 +836,7 @@ header('Expires: 0');
     function runTransformationSaved() {
         let name = $('#saved-transformations-select').val();
         if (!name) {
-            alert('Select a transformation to run.');
+            toastr.warning('Select a transformation to run.');
             return;
         }
         if (!validateGraphBeforeRun()) {
@@ -861,7 +861,6 @@ header('Expires: 0');
             let msg = formatRunError(xhr);
             $('#bottom-container').text(msg).css('color', '#c0392b');
             toastr.error(msg, 'Transformation failed');
-            alert(msg);
         });
     }
 
@@ -887,7 +886,7 @@ header('Expires: 0');
     function runTransformationCurrent() {
         let stepsPayload = buildStepsPayload();
         if (!stepsPayload.length) {
-            alert('There are no steps on the canvas to run.');
+            toastr.warning('There are no steps on the canvas to run.');
             return;
         }
         if (!validateGraphBeforeRun()) {
@@ -912,7 +911,6 @@ header('Expires: 0');
             let msg = formatRunError(xhr);
             $('#bottom-container').text(msg).css('color', '#c0392b');
             toastr.error(msg, 'Transformation failed');
-            alert(msg);
         });
     }
 
@@ -932,7 +930,7 @@ header('Expires: 0');
         if (!nodes.length) {
             let msg = 'Cannot run: there are no steps on the canvas.';
             $('#bottom-container').text(msg).css('color', '#c0392b');
-            alert(msg);
+            toastr.warning(msg, 'Cannot run');
             return false;
         }
         let hasExtractor = nodes.some(function (n) { return n.type === STEP_TYPE_EXTRACTOR || n.type === STEP_TYPE_EXECUTION_EXTRACTOR; });
@@ -940,7 +938,7 @@ header('Expires: 0');
         if (!hasExtractor || !hasLoader) {
             let msg = 'Cannot run: you need at least one extractor and one loader.';
             $('#bottom-container').text(msg).css('color', '#c0392b');
-            alert(msg);
+            toastr.warning(msg, 'Cannot run');
             return false;
         }
         let jsp = window.jsp;
@@ -951,7 +949,7 @@ header('Expires: 0');
         if (!connections.length) {
             let msg = 'Cannot run: no connections between steps. Connect steps before running.';
             $('#bottom-container').text(msg).css('color', '#c0392b');
-            alert(msg);
+            toastr.warning(msg, 'Cannot run');
             return false;
         }
         let nodeIds = nodes.map(function (n) { return n.numericId; });
@@ -995,7 +993,7 @@ header('Expires: 0');
         if (!reachableLoader) {
             let msg = 'Cannot run: no path from any extractor to any loader. Connect steps before running.';
             $('#bottom-container').text(msg).css('color', '#c0392b');
-            alert(msg);
+            toastr.warning(msg, 'Cannot run');
             return false;
         }
         return true;
@@ -1151,7 +1149,7 @@ header('Expires: 0');
     function saveTransformation() {
         let stepsPayload = buildStepsPayload();
         if (!stepsPayload.length) {
-            alert('There are no steps on the canvas to save.');
+            toastr.warning('There are no steps on the canvas to save.');
             return;
         }
 
@@ -1182,7 +1180,7 @@ header('Expires: 0');
                 msg = 'Transformation "' + data.name + '" saved.';
                 loadedTransformationName = data.name;
             }
-            alert(msg);
+            toastr.success(msg, 'Transformation saved');
             loadSavedTransformationsList();
         }).fail(function (xhr) {
             let msg = 'Failed to save transformation.';
@@ -1198,7 +1196,7 @@ header('Expires: 0');
                     // ignore parse errors
                 }
             }
-            alert(msg);
+            toastr.error(msg, 'Save failed');
         });
     }
 
@@ -1667,7 +1665,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
         if (step.object === STEP_OBJECT_CSV_EXTRACTOR) {
             let filePath = $('#csv-file-path').val().trim();
             if (!filePath) {
-                alert('File path is required.');
+                toastr.warning('File path is required.');
                 return;
             }
             let columnsStr = $('#csv-columns').val().trim();
@@ -1689,7 +1687,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
         } else if (step.object === STEP_OBJECT_JSON_EXTRACTOR) {
             let filePath = $('#json-file-path').val().trim();
             if (!filePath) {
-                alert('File path is required.');
+                toastr.warning('File path is required.');
                 return;
             }
             let colText = $('#json-columns').val().trim();
@@ -1717,7 +1715,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
         } else if (step.object === STEP_OBJECT_TXT_EXTRACTOR) {
             let filePath = $('#txt-file-path').val().trim();
             if (!filePath) {
-                alert('File path is required.');
+                toastr.warning('File path is required.');
                 return;
             }
             let column = $('#txt-column').val().trim() || 'line';
@@ -1733,7 +1731,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
         } else if (step.object === STEP_OBJECT_TESSERACT_OCR_EXTRACTOR) {
             let filePath = $('#tesseract-ocr-file-path').val().trim();
             if (!filePath) {
-                alert('Image file path is required.');
+                toastr.warning('Image file path is required.');
                 return;
             }
             let column = $('#tesseract-ocr-column').val().trim() || 'text';
@@ -1751,7 +1749,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
         } else if (step.object === STEP_OBJECT_PDF_EXTRACTOR) {
             let pdfFilePath = $('#pdf-file-path').val().trim();
             if (!pdfFilePath) {
-                alert('PDF file path is required.');
+                toastr.warning('PDF file path is required.');
                 return;
             }
             let pdfColumn = $('#pdf-column').val().trim() || 'text';
@@ -1771,7 +1769,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
         } else if (step.object === STEP_OBJECT_CONVERT_CASE_TRANSFORMER) {
             let columnsStr = $('#convertcase-columns').val().trim();
             if (!columnsStr) {
-                alert('At least one column is required.');
+                toastr.warning('At least one column is required.');
                 return;
             }
             let columns = columnsStr.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
@@ -1790,7 +1788,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
         } else if (step.object === STEP_OBJECT_RENAME_COLUMNS_TRANSFORMER) {
             let raw = $('#rename-mappings').val().trim();
             if (!raw) {
-                alert('At least one column mapping is required.');
+                toastr.warning('At least one column mapping is required.');
                 return;
             }
             let lines = raw.split('\n');
@@ -1811,7 +1809,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 }
             });
             if (Object.keys(columnsMap).length === 0) {
-                alert('Could not parse any valid mappings. Use \"old_name -> new_name\" per line.');
+                toastr.warning('Could not parse any valid mappings. Use \"old_name -> new_name\" per line.');
                 return;
             }
             nodeConfig[numericId] = {
@@ -1828,11 +1826,11 @@ $('#convertcase-mode').val(convertCaseModeVal);
             try {
                 conditions = JSON.parse(conditionsRaw);
             } catch (e) {
-                alert('Conditions must be valid JSON.');
+                toastr.warning('Conditions must be valid JSON.');
                 return;
             }
             if (!Array.isArray(conditions) || conditions.length === 0) {
-                alert('At least one filter condition is required.');
+                toastr.warning('At least one filter condition is required.');
                 return;
             }
             let invalidCondition = conditions.some(function (condition) {
@@ -1841,7 +1839,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
                     typeof condition.operator !== 'string' || !condition.operator.trim();
             });
             if (invalidCondition) {
-                alert('Every condition requires a field and operator.');
+                toastr.warning('Every condition requires a field and operator.');
                 return;
             }
             nodeConfig[numericId] = {
@@ -1859,11 +1857,11 @@ $('#convertcase-mode').val(convertCaseModeVal);
             try {
                 fields = JSON.parse(fieldsRaw);
             } catch (e) {
-                alert('Sort fields must be valid JSON.');
+                toastr.warning('Sort fields must be valid JSON.');
                 return;
             }
             if (!Array.isArray(fields) || fields.length === 0) {
-                alert('At least one sort field is required.');
+                toastr.warning('At least one sort field is required.');
                 return;
             }
             let invalidField = fields.some(function (field) {
@@ -1872,7 +1870,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
                     typeof field.field !== 'string' || !field.field.trim();
             });
             if (invalidField) {
-                alert('Every sort entry must be a field name or an object with a field property.');
+                toastr.warning('Every sort entry must be a field name or an object with a field property.');
                 return;
             }
             nodeConfig[numericId] = {
@@ -1887,7 +1885,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 return field.trim();
             }).filter(Boolean);
             if (keyFields.length === 0) {
-                alert('At least one deduplication key field is required.');
+                toastr.warning('At least one deduplication key field is required.');
                 return;
             }
             let deduplicateOptions = {
@@ -1911,7 +1909,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 return column.trim();
             }).filter(Boolean);
             if (columns.length === 0) {
-                alert('At least one column is required.');
+                toastr.warning('At least one column is required.');
                 return;
             }
             nodeConfig[numericId] = {
@@ -1927,11 +1925,11 @@ $('#convertcase-mode').val(convertCaseModeVal);
             let targetField = $('#derive-field-target').val().trim();
             let expression = $('#derive-field-expression').val().trim();
             if (!targetField) {
-                alert('Target field is required.');
+                toastr.warning('Target field is required.');
                 return;
             }
             if (!expression) {
-                alert('Expression is required.');
+                toastr.warning('Expression is required.');
                 return;
             }
             nodeConfig[numericId] = {
@@ -1948,11 +1946,11 @@ $('#convertcase-mode').val(convertCaseModeVal);
             try {
                 fields = JSON.parse($('#type-conversion-fields').val().trim());
             } catch (e) {
-                alert('Field types must be valid JSON.');
+                toastr.warning('Field types must be valid JSON.');
                 return;
             }
             if (!fields || Array.isArray(fields) || typeof fields !== 'object' || Object.keys(fields).length === 0) {
-                alert('At least one field type is required.');
+                toastr.warning('At least one field type is required.');
                 return;
             }
             nodeConfig[numericId] = {
@@ -1971,11 +1969,11 @@ $('#convertcase-mode').val(convertCaseModeVal);
             try {
                 rules = JSON.parse($('#validate-rows-rules').val().trim());
             } catch (e) {
-                alert('Validation rules must be valid JSON.');
+                toastr.warning('Validation rules must be valid JSON.');
                 return;
             }
             if (!rules || Array.isArray(rules) || typeof rules !== 'object' || Object.keys(rules).length === 0) {
-                alert('At least one field rule is required.');
+                toastr.warning('At least one field rule is required.');
                 return;
             }
             let errorField = $('#validate-rows-error-field').val().trim() || '_validation_errors';
@@ -1993,7 +1991,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
             let driver = $('#db-driver').val();
             let table = $('#db-table').val().trim();
             if (!table) {
-                alert('Table is required.');
+                toastr.warning('Table is required.');
                 return;
             }
             let options = { driver: driver, tableName: table };
@@ -2001,7 +1999,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 let memory = $('#db-memory').prop('checked');
                 let path = $('#db-path').val().trim();
                 if (!memory && !path) {
-                    alert('Path is required (or check In-memory database).');
+                    toastr.warning('Path is required (or check In-memory database).');
                     return;
                 }
                 options.path = memory ? '' : path;
@@ -2011,7 +2009,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 let database = $('#db-database').val().trim();
                 let user = $('#db-user').val().trim();
                 if (!host || !database || !user) {
-                    alert('Host, Database, and User are required.');
+                    toastr.warning('Host, Database, and User are required.');
                     return;
                 }
                 let port = parseInt($('#db-port').val(), 10) || (driver === 'pdo_pgsql' ? 5432 : 3306);
@@ -2034,7 +2032,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 let memory = $('#db-extractor-memory').prop('checked');
                 let path = $('#db-extractor-path').val().trim();
                 if (!memory && !path) {
-                    alert('Path is required (or check In-memory database).');
+                    toastr.warning('Path is required (or check In-memory database).');
                     return;
                 }
                 options.path = memory ? '' : path;
@@ -2044,7 +2042,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
                 let database = $('#db-extractor-database').val().trim();
                 let user = $('#db-extractor-user').val().trim();
                 if (!host || !database || !user) {
-                    alert('Host, Database, and User are required.');
+                    toastr.warning('Host, Database, and User are required.');
                     return;
                 }
                 let port = parseInt($('#db-extractor-port').val(), 10) || (driver === 'pdo_pgsql' ? 5432 : 3306);
@@ -2056,7 +2054,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
             }
             let query = $('#db-extractor-query').val().trim();
             if (!query) {
-                alert('SQL query is required.');
+                toastr.warning('SQL query is required.');
                 return;
             }
             options.query = query;
@@ -2069,7 +2067,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
         } else if (step.object === STEP_OBJECT_FIND_MISSING_EXTRACTOR) {
             let filterField = $('#find-missing-filter-field').val().trim();
             if (!filterField) {
-                alert('Sequence column name is required.');
+                toastr.warning('Sequence column name is required.');
                 return;
             }
             nodeConfig[numericId] = {
@@ -2081,7 +2079,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
         } else if (step.object === STEP_OBJECT_GUESS_GENDER_TRANSFORMER) {
             let firstNameField = $('#guess-gender-first-name-field').val().trim();
             if (!firstNameField) {
-                alert('First name column is required.');
+                toastr.warning('First name column is required.');
                 return;
             }
             let genderField = $('#guess-gender-gender-field').val().trim() || 'gender';
@@ -2141,7 +2139,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
     function addItem(stepId, stepType) {
         if (!stepId || !steps.has(stepId)) {
             console.warn('addItem: missing or unknown stepId', stepId);
-            alert('Could not add step: step data was lost or steps not loaded. Try again.');
+            toastr.warning('Could not add step: step data was lost or steps not loaded. Try again.');
             return;
         }
         if (!stepType) {
@@ -2149,7 +2147,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
             stepType = step ? step.type : '';
         }
         if (!stepType) {
-            alert('Could not add step: step type unknown.');
+            toastr.warning('Could not add step: step type unknown.');
             return;
         }
         flowchartCount++;
@@ -2242,7 +2240,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
             if (name) {
                 loadTransformation(name);
             } else {
-                alert('Select a transformation to load.');
+                toastr.warning('Select a transformation to load.');
             }
         });
         $('#run-transformation-btn').on('click', function () {
