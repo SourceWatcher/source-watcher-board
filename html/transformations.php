@@ -44,11 +44,6 @@ header('Expires: 0');
             <button type="button" id="save-transformation-btn" class="top-menu-button">Save</button>
             <a href="login.php" id="logout-btn">Log out</a>
         </div>
-        <div id="transformation-notes-container">
-            <label for="transformation-notes">Notes</label>
-            <textarea id="transformation-notes" rows="2" placeholder="Describe this transformation, its source, assumptions, or operational notes."></textarea>
-        </div>
-
         <div id="central-container">
             <aside class="sidebar-panel">
                 <h2 class="sidebar-title">Steps</h2>
@@ -57,6 +52,17 @@ header('Expires: 0');
             </aside>
 
             <div id="diagram-container">
+                <section id="transformation-notes-card" aria-label="Transformation notes">
+                    <div class="transformation-notes-header">
+                        <span class="transformation-notes-icon" aria-hidden="true">✎</span>
+                        <label for="transformation-notes">Transformation Notes</label>
+                        <button type="button" id="toggle-transformation-notes" title="Collapse notes" aria-expanded="true">−</button>
+                    </div>
+                    <div class="transformation-notes-body">
+                        <textarea id="transformation-notes" rows="6" placeholder="Describe this transformation, its source, assumptions, or operational notes."></textarea>
+                        <span class="transformation-notes-hint">Saved with this transformation</span>
+                    </div>
+                </section>
                 <div class="canvas-wide flowchart-demo jtk-surface jtk-surface-nopan" id="canvas">
                     <!--
                     <div class="window jtk-node" id="flowchartWindow1"><center><strong>Csv</strong><br/><label>Extractor</label></center></div>
@@ -2051,6 +2057,19 @@ $('#convertcase-mode').val(convertCaseModeVal);
         });
         $('#run-current-btn').on('click', function () {
             runTransformationCurrent();
+        });
+        $('#toggle-transformation-notes').on('click', function () {
+            let card = $('#transformation-notes-card');
+            let collapsed = card.toggleClass('is-collapsed').hasClass('is-collapsed');
+            $(this)
+                .text(collapsed ? '+' : '−')
+                .attr('title', collapsed ? 'Expand notes' : 'Collapse notes')
+                .attr('aria-expanded', collapsed ? 'false' : 'true');
+        });
+        $('#transformation-notes-card').draggable({
+            containment: '#diagram-container',
+            handle: '.transformation-notes-header',
+            cancel: 'button, textarea'
         });
         $(document).on('click', '.step-edit', function (e) {
             e.preventDefault();
