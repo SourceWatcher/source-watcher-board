@@ -2115,7 +2115,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
             return;
         }
         $('#step-edit-modal').dialog('close');
-        toastr.success('Step settings updated on the canvas.', 'Step saved');
+        toastr.success('Step settings updated on the canvas.', 'Step updated');
     }
 
     function remove(numericId) {
@@ -2236,7 +2236,7 @@ $('#convertcase-mode').val(convertCaseModeVal);
             modal: true,
             width: 420,
             buttons: {
-                Save: function () {
+                OK: function () {
                     saveStepEdit();
                 },
                 Cancel: function () {
@@ -2292,10 +2292,10 @@ $('#convertcase-mode').val(convertCaseModeVal);
             modal: true,
             width: 520,
             buttons: {
-                Save: function () {
+                OK: function () {
                     setTransformationNotes($('#transformation-notes').val());
                     $(this).dialog('close');
-                    toastr.success('Transformation notes updated on the canvas.', 'Notes saved');
+                    toastr.success('Transformation notes updated on the canvas.', 'Notes updated');
                 },
                 Cancel: function () {
                     $(this).dialog('close');
