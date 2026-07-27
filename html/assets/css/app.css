@@ -364,6 +364,8 @@ body {
 #transformation-notes-display {
     min-height: 72px;
     max-height: 240px;
+    margin-top: 6px;
+    margin-left: 6px;
     overflow-y: auto;
     color: #3f3a24;
     font-size: 13px;
