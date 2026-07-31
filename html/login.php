@@ -19,7 +19,7 @@
     <main class="login-main">
         <div class="login-card">
             <h1 class="login-card-title">Log in</h1>
-            <form id="login-form" class="login-form" onsubmit="return false;">
+            <form id="login-form" class="login-form">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" placeholder="Username" autocomplete="username">
@@ -28,7 +28,7 @@
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Password" autocomplete="current-password">
                 </div>
-                <button type="button" id="login-button" class="login-button">Log in</button>
+                <button type="submit" id="login-button" class="login-button">Log in</button>
                 <div class="login-options">
                     <label class="login-remember">
                         <input type="checkbox" id="remember-me" name="remember">
