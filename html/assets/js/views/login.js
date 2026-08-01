@@ -55,9 +55,6 @@ function validateJwt(accessToken) {
 }
 
 $(document).ready(function () {
-    $('#login-button').on('click', function () {
-        login();
-    });
     $('#login-form').on('submit', function (e) {
         e.preventDefault();
         login();
